@@ -14,13 +14,14 @@ settings = parser.parse_args()
 ppp = 0
 
 
-def plot_rastrigin(fig=plt.figure()):
+def plot_cost_function(fig=plt.figure(), option=0):
 	X = np.linspace(-5, 5, 100)
 	Y = np.linspace(-5, 5, 100)
 	X, Y = np.meshgrid(X, Y)
-
-	Z = (X ** 2 - 10 * np.cos(2 * np.pi * X)) + (Y ** 2 - 10 * np.cos(2 * np.pi * Y)) + 20
-
+	if option == 0:
+		Z = (X ** 2 - 10 * np.cos(2 * np.pi * X)) + (Y ** 2 - 10 * np.cos(2 * np.pi * Y)) + 20
+	else:
+		Z = (1 - Y) ** 2 + 2 * (Y - X ** 2) ** 2
 	ax = fig.gca(projection='3d')
 	ax.plot_surface(X, Y, Z, rstride=1, cstride=1, alpha=0.4, cmap=cm.nipy_spectral, linewidth=0.08)
 	# ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.nipy_spectral, linewidth=0.08)
@@ -48,6 +49,8 @@ def calculate_cost(func_cost=0):
 	if func_cost == 0:
 		return (pos[:, 0] ** 2 - 10 * np.cos(2 * np.pi * pos[:, 0])) + (
 				pos[:, 1] ** 2 - 10 * np.cos(2 * np.pi * pos[:, 1])) + 20
+	else:
+		return (1 - pos[:, 1]) ** 2 + 2 * (pos[:, 1] - pos[:, 0] ** 2) ** 2
 
 
 def update_best():
@@ -78,14 +81,14 @@ b = 2
 c = 2
 
 
-def update(n_times=10000):
+def update(n_times=10000, option=0):
 	global best_swarm_pos, best_swarm_cost, cost, vel, pos, a
 
 	factor = 0.5 / n_times
 	for i in range(n_times):
 		rp = np.random.rand(n_particles, 2)
 		rg = np.random.rand(n_particles, 2)
-		cost = calculate_cost()
+		cost = calculate_cost(option)
 		update_best()
 		vel = a * vel + b * rp * (best_pos - pos) + c * rg * (best_swarm_pos - pos)
 		pos = pos + vel
@@ -103,7 +106,7 @@ def update(n_times=10000):
 				pos[np.argmax(cost)]) + " with a cost of: " + str(
 				np.max(cost)) + "\033[0m"
 			print(t)
-			plot_particles("Iteration " + str(i))
+			plot_particles(option, "Iteration " + str(i))
 		if np.max(cost) < 0.01:
 			t = "\033[91m Finished in iteration :" + str(i) + ". Worst particle is at " + str(
 				pos[np.argmax(cost)]) + " with a cost of: " + str(
@@ -112,7 +115,7 @@ def update(n_times=10000):
 			break
 
 
-def plot_particles(title="Particles", cost_funct=True, save_fig=False):
+def plot_particles(option, title="Particles", cost_funct=True, save_fig=False):
 	global ppp
 	fig = plt.figure()
 	ax = fig.gca(projection='3d')
@@ -123,18 +126,18 @@ def plot_particles(title="Particles", cost_funct=True, save_fig=False):
 	plt.xlim(-5, 5)
 	# plt.savefig('particles_graph' + str(ppp) + '.png')
 	if cost_funct:
-		plot_rastrigin(fig)
-	ax.view_init(90, 0)
+		plot_cost_function(fig, option)
+	# ax.view_init(90, 0)
 	if save_fig:
-		plt.savefig('rastrigin_graph2' + str(ppp) + '.png')
+		plt.savefig('cost_funct_graph2' + str(ppp) + '.png')
 	plt.show()
 	ppp += 1
 
 
 # plot_particles()
 if settings.iterations:
-	update(int(settings.iterations))
+	update(int(settings.iterations), 1)
 else:
 	update(1000)
 
-plot_particles()
+# plot_particles()
